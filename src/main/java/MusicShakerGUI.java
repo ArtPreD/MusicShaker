@@ -1,8 +1,5 @@
 package main.java;
 
-import main.java.animation.AnimationWait;
-import main.java.logic.MusicShaker;
-
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -11,13 +8,17 @@ import java.awt.event.ActionListener;
 
 public class MusicShakerGUI extends JFrame implements ActionListener {
 
-    private static MusicShaker musicShaker = MusicShaker.getInstance();
+    public static final int START_SCAN = 1;
+    public static final int START_SERVER = 2;
+    public static final int COPY_RANDOM = 3;
+    public static final int COPY_ALL = 4;
+    public static final int START = 5;
+    public static final int SELECT_PATH_SOURCE = 6;
+    public static final int SELECT_PATH_TARGET = 7;
 
     private static final String chooserTitle = "Select folder";
-    private static String pathSource = "C:\\MusicShaker\\Input Folder";
-    private static String pathTarget = "C:\\MusicShaker\\Output Folder";
 
-    private JButton selectSource, selectTarget, shakeIt;
+    private JButton selectSource, selectTarget, shakeIt, startScan, startServer, copyRandom, copyAll;
     private JTextField pathS, pathT;
     private JLabel pathSourceLabel, pathTargetLabel, copyFileName;
     private JFileChooser chooser;
@@ -26,18 +27,13 @@ public class MusicShakerGUI extends JFrame implements ActionListener {
 
     private JScrollPane jScrollPane;
 
-    public static MusicShakerGUI shaker;
+    private ShakerCallBack shakerCallBack;
 
 
 
-
-    public static void main(String[] args) {
-        shaker = new MusicShakerGUI();
-
-    }
-
-    private MusicShakerGUI(){
+    public MusicShakerGUI(ShakerCallBack shakerCallBack){
         super("MusicShaker");
+        this.shakerCallBack = shakerCallBack;
         setLayout(null);
         setSize(850, 550);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -55,6 +51,7 @@ public class MusicShakerGUI extends JFrame implements ActionListener {
 
         pathS = new JTextField();
         pathS.setBounds(x, y, 700, 25);
+        pathS.setFocusable(false);
         add(pathS);
         x += 710;
 
@@ -72,6 +69,7 @@ public class MusicShakerGUI extends JFrame implements ActionListener {
 
         pathT = new JTextField();
         pathT.setBounds(x, y, 700, 25);
+        pathT.setFocusable(false);
         add(pathT);
         x += 710;
 
@@ -82,14 +80,38 @@ public class MusicShakerGUI extends JFrame implements ActionListener {
         y += 35;
         x = 10;
 
+        startScan = new JButton("Start Scan");
+        startScan.setBounds(x, y, 195, 25);
+        startScan.addActionListener(this);
+        startScan.setEnabled(false);
+        add(startScan);
+
+        x += 205;
+        startServer = new JButton("Start Server");
+        startServer.setBounds(x, y, 195, 25);
+        startServer.addActionListener(this);
+        add(startServer);
+
+        x += 205;
+        copyRandom = new JButton("Random copy");
+        copyRandom.setBounds(x, y, 195, 25);
+        copyRandom.addActionListener(this);
+        add(copyRandom);
+
+        x += 205;
+        copyAll = new JButton("Copy all");
+        copyAll.setBounds(x, y, 195, 25);
+        copyAll.addActionListener(this);
+        add(copyAll);
 
 
 
-
+        x = 10;
         y = 475;
         shakeIt = new JButton("Start!");
         shakeIt.setBounds(x, y, 100, 25);
         shakeIt.addActionListener(this);
+        shakeIt.setEnabled(false);
         add(shakeIt);
         x += 110;
 
@@ -120,19 +142,41 @@ public class MusicShakerGUI extends JFrame implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == selectSource || e.getSource() == selectTarget) {
+
             selectPath(e);
-        }else if (e.getSource() == shakeIt){
-            System.out.println("I shake it!");
-            progressBar.setValue(0);
-            shakeIt.setEnabled(false);
-            Thread animationWait = new AnimationWait();
-            animationWait.start();
-            Thread thread = new Thread(musicShaker);
-            thread.start();
+
+        } else if (e.getSource() == startScan){
+
+
+                shakerCallBack.sendMessage(START_SCAN, "Start scan");
+
+            } else if (e.getSource() == startServer){
+
+                shakerCallBack.sendMessage(START_SERVER, "Start server");
+
+            }else if (e.getSource() == copyRandom){
+
+                shakerCallBack.sendMessage(COPY_RANDOM, "Random copy");
+
+            }else if (e.getSource() == copyAll){
+
+                shakerCallBack.sendMessage(COPY_ALL, "Copy all");
+
+            }else if (e.getSource() == shakeIt){
+
+                shakerCallBack.sendMessage(START, "Start program");
+
+//            progressBar.setValue(0);
+//            shakeIt.setEnabled(false);
+//            Thread animationWait = new AnimationWait();
+//            animationWait.start();
+//            Thread thread = new Thread(musicShaker);
+//            thread.start();
+
         }
     }
 
-    private void selectPath(ActionEvent e){
+    private void selectPath(ActionEvent e) {
         chooser = new JFileChooser();
         chooser.setCurrentDirectory(new java.io.File("."));
         chooser.setDialogTitle(chooserTitle);
@@ -142,18 +186,15 @@ public class MusicShakerGUI extends JFrame implements ActionListener {
 
         if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
             if (e.getSource() == selectTarget) {
-                pathTarget = chooser.getSelectedFile().getPath();
-                musicShaker.setPathTarget(pathTarget);
-                pathT.setText(pathTarget);
-                System.out.println("Select target folder: " + pathTarget);
-            }else if (e.getSource() == selectSource){
-                pathSource = chooser.getSelectedFile().getPath();
-                musicShaker.setPathSource(pathSource);
-                pathS.setText(pathSource);
-                System.out.println("Select source folder: " + pathSource);
+                pathT.setText(chooser.getSelectedFile().getPath());
+                shakerCallBack.sendMessage(SELECT_PATH_TARGET, chooser.getSelectedFile().getPath());
+
+            } else if (e.getSource() == selectSource) {
+                pathS.setText(chooser.getSelectedFile().getPath());
+                shakerCallBack.sendMessage(SELECT_PATH_SOURCE, chooser.getSelectedFile().getPath());
+
             }
-        }
-        else {
+        } else {
             System.out.println("No Selection ");
         }
     }
@@ -173,5 +214,9 @@ public class MusicShakerGUI extends JFrame implements ActionListener {
 
     public JButton getShakeIt() {
         return shakeIt;
+    }
+
+    public JButton getStartScan() {
+        return startScan;
     }
 }

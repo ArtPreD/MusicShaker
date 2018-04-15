@@ -16,13 +16,13 @@ public class AnimationWait extends Thread {
     @Override
     public void run() {
         System.out.println("START THREAD ANIMATION");
-        area = MusicShakerGUI.shaker.getArea();
-        shakeIt = MusicShakerGUI.shaker.getShakeIt();
+       // area = MusicShakerGUI.shaker.getArea();
+       // shakeIt = MusicShakerGUI.shaker.getShakeIt();
 
             String wait = "Please wait";
             int count = 0;
             while (isScanRemaining){
-                area.setText("Start scanning folder for path: " + musicShaker.getPathSource() + "\n" + wait);
+                //area.setText("Start scanning folder for path: " + musicShaker.getPathSource() + "\n" + wait);
                 if (count < 3){
                     wait = wait.concat(".");
                     count++;
