@@ -1,5 +1,6 @@
 package main.java.logic;
 
+import main.java.ShakerCallBack;
 import main.java.animation.AnimationWait;
 
 import javax.swing.*;
@@ -9,14 +10,17 @@ import java.nio.file.*;
 import java.util.*;
 
 
-public class MusicShaker implements Runnable {
+public class MusicShaker extends Thread{
 
-    private static final MusicShaker INSTANCE = new MusicShaker();
+    public static final int UPDATE_PROGRESS = 8;
+    public static final int FINISH_WRITE = 9;
+
+    ShakerCallBack shakerCallBack;
 
     private Integer[] randomNumberList;
     private File[] musicList;
     private int songsQuantity, songsQuantityInList;
-    private int count = 30;
+    private int count;
     private int sizeInByte;
     private boolean isCount, isSize;
     private int percentForProgressBar, fileCount, existCount, musicCount, remainCount, randomNumberCount;
@@ -25,8 +29,8 @@ public class MusicShaker implements Runnable {
 
     private ArrayList<File> listOfSongs;
 
-    private MusicShaker() {
-
+    public MusicShaker(ShakerCallBack shakerCallBack) {
+        this.shakerCallBack = shakerCallBack;
     }
 
     private void initialize() {
@@ -40,7 +44,7 @@ public class MusicShaker implements Runnable {
         initialize();
        // System.out.println("\n" + "Start scanning folder for path: " + pathSource + "\n" + "Please wait..." + "\n\n");
       //  scanDirForSongs(new File(pathSource));
-        AnimationWait.isScanRemaining = false;
+       // AnimationWait.isScanRemaining = false;
        // textArea.setText("Start scanning folder for path: " + pathSource + "\n" + "Please wait..." + "\n\n");
         //System.out.println("Scan complete. Found " + listOfSongs.size() + " files. " + "File list: ");
         textArea.setText(textArea.getText() + "Scan complete. Found " + listOfSongs.size() + " files. " + "File list: " + "\n");
@@ -48,9 +52,13 @@ public class MusicShaker implements Runnable {
         listOfSongs.forEach(x -> textArea.setText(textArea.getText() + "\n" + x.getName()));
         songsQuantity = listOfSongs.size();
         generateRandomNumbers();
-        createMusicListWithCount();
+        createMusicListWithRandomNumbers();
         //writeSongListToFolder(createMusicListWithCount());
 
+
+    }
+
+    public void start(){
 
     }
 
@@ -60,6 +68,14 @@ public class MusicShaker implements Runnable {
         scanDirForSongs(new File(path));
         textArea.setText(textArea.getText() + "Scan complete. Found " + listOfSongs.size() + " files. " + "File list: " + "\n");
         listOfSongs.forEach(x -> textArea.setText(textArea.getText() + "\n" + x.getName()));
+    }
+
+    public void startRandomWrite(String path, int count){
+        this.count = count;
+        randomNumberCount = 0;
+        songsQuantity = listOfSongs.size();
+        generateRandomNumbers();
+        writeSongListToFolder(createMusicListWithRandomNumbers(), path);
     }
 
     private void scanDirForSongs(File folder) {
@@ -100,7 +116,7 @@ public class MusicShaker implements Runnable {
     }
 
 
-    private File[] createMusicListWithCount(){
+    private File[] createMusicListWithRandomNumbers(){
         System.out.println("Build list of chosen music: ");
         musicList = new File[count];
         remainCount = songsQuantity - count;
@@ -141,8 +157,9 @@ public class MusicShaker implements Runnable {
         System.out.println("\n" + "Start coping files into " + path);
         try {
             for (File song : songsList) {
-                percentForProgressBar = fileCount * 100 / count;
+                //percentForProgressBar = fileCount * 100 / count;
                 sourcePath = Paths.get(song.getPath());
+                shakerCallBack.sendMessage(UPDATE_PROGRESS, song.getName());
                 //MusicShakerGUI.shaker.updateProgress("Copy file: " + song.getName(), percentForProgressBar);
                 try {
                     Files.copy(sourcePath, targetPath.resolve(song.getName()));
@@ -161,6 +178,8 @@ public class MusicShaker implements Runnable {
                 fileCount++;
                 System.out.println("Copy " + fileCount + " files");
             }
+            shakerCallBack.sendMessage(FINISH_WRITE, "Copy successful! Copy " + (fileCount - existCount)
+                      + " files. " + existCount + " file(s) replace because already exist.");
             //MusicShakerGUI.shaker.updateProgress("Copy successful! Copy " + (fileCount - existCount)
                   //  + " files. " + existCount + " file(s) replace because already exist.", 100);
             fileCount = 0;
@@ -174,9 +193,6 @@ public class MusicShaker implements Runnable {
         }
     }
 
-    public static MusicShaker getInstance() {
-        return INSTANCE;
-    }
 
     public int getSongsQuantity() {
         return songsQuantity;

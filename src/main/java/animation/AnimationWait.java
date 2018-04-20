@@ -1,35 +1,35 @@
 package main.java.animation;
 
-import main.java.MusicShakerGUI;
-import main.java.logic.MusicShaker;
 
-import javax.swing.*;
+import main.java.ShakerCallBack;
+
 
 public class AnimationWait extends Thread {
 
-    MusicShaker musicShaker = MusicShaker.getInstance();
-    JTextArea area;
-    JButton shakeIt;
+    public static final int SCAN_REMAINING = 22;
 
-    public static boolean isScanRemaining = true;
+    private ShakerCallBack callBack;
+    private static boolean isScanRemaining = true;
+
+
+    public AnimationWait(ShakerCallBack callBack){
+        this.callBack = callBack;
+    }
 
     @Override
     public void run() {
-        System.out.println("START THREAD ANIMATION");
-       // area = MusicShakerGUI.shaker.getArea();
-       // shakeIt = MusicShakerGUI.shaker.getShakeIt();
-
             String wait = "Please wait";
             int count = 0;
             while (isScanRemaining){
-                //area.setText("Start scanning folder for path: " + musicShaker.getPathSource() + "\n" + wait);
+                System.out.println("SCAN_REMAINING");
+                callBack.sendMessage(SCAN_REMAINING, wait);
                 if (count < 3){
                     wait = wait.concat(".");
                     count++;
                     try {
                         sleep(1000);
                     } catch (InterruptedException e) {
-                        e.printStackTrace();
+                        isScanRemaining = false;
                     }
                 }else {
                     wait = "Please wait";
@@ -37,10 +37,9 @@ public class AnimationWait extends Thread {
                     try {
                         sleep(1000);
                     } catch (InterruptedException e) {
-                        e.printStackTrace();
+                        isScanRemaining = false;
                     }
                 }
             }
-            shakeIt.setEnabled(true);
         }
 }

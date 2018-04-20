@@ -16,13 +16,18 @@ public class MusicShakerGUI extends JFrame implements ActionListener {
     public static final int SELECT_PATH_SOURCE = 6;
     public static final int SELECT_PATH_TARGET = 7;
 
-    private static final String chooserTitle = "Select folder";
+    private static final String CHOOSER_TITLE = "Select folder";
 
     private JButton selectSource, selectTarget, shakeIt, startScan, startServer, copyRandom, copyAll;
     private JTextField pathS, pathT;
     private JLabel pathSourceLabel, pathTargetLabel, copyFileName;
     private JFileChooser chooser;
     private JProgressBar progressBar;
+
+    public JProgressBar getProgressBar() {
+        return progressBar;
+    }
+
     private JTextArea area;
 
     private JScrollPane jScrollPane;
@@ -150,9 +155,12 @@ public class MusicShakerGUI extends JFrame implements ActionListener {
 
                 shakerCallBack.sendMessage(START_SCAN, "Start scan");
 
+
+
             } else if (e.getSource() == startServer){
 
                 shakerCallBack.sendMessage(START_SERVER, "Start server");
+
 
             }else if (e.getSource() == copyRandom){
 
@@ -179,7 +187,7 @@ public class MusicShakerGUI extends JFrame implements ActionListener {
     private void selectPath(ActionEvent e) {
         chooser = new JFileChooser();
         chooser.setCurrentDirectory(new java.io.File("."));
-        chooser.setDialogTitle(chooserTitle);
+        chooser.setDialogTitle(CHOOSER_TITLE);
         chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 
         chooser.setAcceptAllFileFilterUsed(false);
@@ -197,6 +205,10 @@ public class MusicShakerGUI extends JFrame implements ActionListener {
         } else {
             System.out.println("No Selection ");
         }
+    }
+
+    public void targetNotSelectDialog(){
+        JOptionPane.showMessageDialog(null, "Select target folder first!");
     }
 
     public Dimension getPreferredSize(){
